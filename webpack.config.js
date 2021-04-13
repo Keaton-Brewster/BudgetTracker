@@ -2,9 +2,9 @@ const WebpackPwaManifest = require('webpack-pwa-manifest');
 const path = require('path');
 
 const config = {
-    mode: "production",
+    mode: "development",
     entry: {
-        index: "./public/index.js",
+        index: "./public/assets/index.js",
     },
     output: {
         path: __dirname + "/public/dist",
@@ -25,16 +25,17 @@ const config = {
     plugins: [
         new WebpackPwaManifest({
             fingerprints: false,
-            name: 'Newsy app',
-            short_name: 'Newsy',
-            description: 'An application that allows you to view different news articles and save your favorites.',
-            background_color: '#01579b',
-            theme_color: '#ffffff',
+            name: 'Budgety',
+            short_name: 'Budgety',
+            description: 'An application that helps you manage your exspenses.',
+            background_color: '#000',
+            theme_color: '#000',
             start_url: '/',
             icons: [{
-                src: path.resolve('./public/icons/icon-512x512.png'),
+                //! Something is going on here and causing AUTO to show up in icon pathname and its making production not work
+                src: 'public/assets/icons/icon-192x192.png',
                 sizes: [192, 512],
-                destination: path.join('assets', 'icons'),
+                destination: 'icons'
             }, ],
         }),
     ],

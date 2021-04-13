@@ -4,7 +4,7 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-    "start:dev": "concurrently \"npm run server\" \"npm run build\"",
+    "start:dev": "concurrently \"nodemon server.js\" \"npm run build\"",
     "build": "webpack --watch",
     "test": "echo \"Error: no test specified\" && exit 1",
     "server": "node server.js",
