@@ -121,7 +121,10 @@ function sendTransaction(isAdding) {
       }
     })
     .then(response => {
-      return response.json();
+      if (response) {
+        return response.json();
+      }
+      throw
     })
     .then(data => {
       if (data.errors) {
@@ -134,6 +137,7 @@ function sendTransaction(isAdding) {
     })
     .catch(err => {
       // fetch failed, so save in indexed db
+      console.log('Catch invoked index.js line 137, Error ==>', err);
       saveRecord(transaction);
 
       // clear form
@@ -141,6 +145,23 @@ function sendTransaction(isAdding) {
       amountEl.value = "";
     });
 }
+
+// const addTransactionTOIDB = (transaction) => {
+//   const request = window.indexedDB.open
+// }
+
+// const saveRecord = (transaction) => {
+//   return addTransactionTOIDB(transaction)
+//     .then(() => {
+//       return navigator.serviceWorker.ready;
+//     }).then(reg => {
+//       return reg.sync.register('add-transaction');
+//     }).then(() => {
+//       console.log('Sync registered successfully');
+//     }).catch(() => {
+//       console.log('Sync registration failed');
+//     })
+// }
 
 document.querySelector("#add-btn").onclick = function () {
   sendTransaction(true);

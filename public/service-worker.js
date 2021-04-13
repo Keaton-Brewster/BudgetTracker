@@ -2,9 +2,9 @@ const DATA_CACHE_NAME = "data-cache-v1";
 
 self.addEventListener("install", (event) => {
     //   pre-cache transaction data
-    event.waitUntil(
-        caches.open(DATA_CACHE_NAME).then((cache) => cache.add("/api/transaction"))
-    );
+    // event.waitUntil(
+    //     caches.open(DATA_CACHE_NAME).then((cache) => cache.add('/api/transaction'))
+    // );
 
     //   pre-cache static assets
     event.waitUntil(
@@ -18,12 +18,13 @@ self.addEventListener("install", (event) => {
                     "/manifest.webmanifest",
                     "./icons/icon-192x192.png",
                     "./icons/icon-512x512.png",
-                    "https://cdn.jsdelivr.net/npm/chart.js@2.8.0f",
+                    "https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css",
+                    "https://cdn.jsdelivr.net/npm/chart.js@2.8.0"
                 ])
                 .catch(error => console.log(error));
         })
     );
-    console.log("Install");
+    console.log("SW installed");
     self.skipWaiting();
 });
 
@@ -79,3 +80,29 @@ self.addEventListener("fetch", function (event) {
         })
     );
 });
+
+// async function getTransaction() {
+//     return new Promise((resolve, reject) => {
+
+//     })
+// }
+
+// //? I can use this sync event to update the databases behind the scenes, hopefully. ;
+// //? honestly all of this is becoming super confusing. and I don't really know how much I actually know
+// self.addEventListener('sync', event => {
+//     if (event.tag = 'add-transaction') {
+//         event.waitUntil(
+//             getTransaction().then(transactions => {
+//                 return fetch('/api/transactions/bulk', {
+//                     method: 'POST',
+//                     body: JSON.stringify(transactions),
+//                     headers: {
+//                         'Content-Type': 'application/json'
+//                     }
+//                 }).then(() => {
+//                     console.log('bulk post success (SW.js line 97)');
+//                 })
+//             }))
+//     }
+// })
+
