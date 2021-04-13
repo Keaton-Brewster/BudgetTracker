@@ -124,7 +124,6 @@ function sendTransaction(isAdding) {
       if (response) {
         return response.json();
       }
-      throw
     })
     .then(data => {
       if (data.errors) {
