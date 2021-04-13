@@ -1,0 +1,22 @@
+{
+  "icons": [
+    {
+      "src": "assets/icons/icon_512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "assets/icons/icon_192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ],
+  "name": "Budgety",
+  "short_name": "Budgety",
+  "orientation": "portrait",
+  "display": "standalone",
+  "start_url": "/",
+  "description": "An application that helps you manage your exspenses.",
+  "background_color": "#000",
+  "theme_color": "#000"
+}

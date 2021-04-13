@@ -1,59 +1,48 @@
-const STATIC_ASSETS = "static_assets_v1";
-const API_DATA_CACHE = "api_cache_v1";
 const FILES_TO_CACHE = [
-    '/dist/assets/icons/icon_192x192.png',
-    '/dist/assets/icons/icon_512x512.png',
-    'dist/index.bundle.js'
+    '/',
+    '/style.css',
+    '/dist/index.bundle.js',
+    '/dist/icons/icon_192x192.png',
+    '/dist/icons/icon_512x512.png'
 ];
 
-// install
-self.addEventListener("install", function (evt) {
-    // pre cache bulk transaction data
-    evt.waitUntil(
-        caches.open(API_DATA_CACHE).then((cache) => cache.add("/api/transaction"))
-    );
+const PRECACHE = 'precache-v1';
+const RUNTIME = 'runtime';
 
-    // pre cache all static assets
-    evt.waitUntil(
-        caches.open(STATIC_ASSETS).then((cache) => cache.addAll(FILES_TO_CACHE))
+self.addEventListener('install', (event) => {
+    event.waitUntil(
+        caches
+        .open(PRECACHE)
+        .then((cache) => cache.addAll(FILES_TO_CACHE))
+        .then(self.skipWaiting())
     );
-
-    // tell the browser to activate this service worker immediately once it
-    // has finished installing
-    self.skipWaiting();
 });
 
-// activate
-self.addEventListener("activate", function (evt) {
-    evt.waitUntil(
-        caches.keys().then(keyList => {
+// The activate handler takes care of cleaning up old caches.
+self.addEventListener('activate', (event) => {
+    const currentCaches = [PRECACHE, RUNTIME];
+    event.waitUntil(
+        caches
+        .keys()
+        .then((cacheNames) => {
+            return cacheNames.filter((cacheName) => !currentCaches.includes(cacheName));
+        })
+        .then((cachesToDelete) => {
             return Promise.all(
-                keyList.map(key => {
-                    if (key !== CACHE_NAME && key !== DATA_CACHE_NAME) {
-                        console.log("Removing old cache data", key);
-                        return caches.delete(key);
-                    }
+                cachesToDelete.map((cacheToDelete) => {
+                    return caches.delete(cacheToDelete);
                 })
             );
         })
+        .then(() => self.clients.claim())
     );
-
-    self.clients.claim();
 });
 
 // fetch
 self.addEventListener("fetch", function (evt) {
     if (evt.request.url.includes("/api/")) {
-
-        // after checking if an api request is being made, check if its a post. If it IS
-        // we are going to have to set up a way to send data to indexedDB
-        // and then we will also need like, some sort of refresh funciton to sync 
-        // May be a good time to look into the backgorund sync packages
-        if (evt.request.url.includes("/api/") && evt.request.method === "POST") {
-
-        }
         evt.respondWith(
-            caches.open(API_DATA_CACHE).then(cache => {
+            caches.open(RUNTIME).then(cache => {
                 return fetch(evt.request)
                     .then(response => {
                         // If the response was good, clone it and store it in the cache.
@@ -74,10 +63,16 @@ self.addEventListener("fetch", function (evt) {
     }
 
     evt.respondWith(
-        caches.open(STATIC_ASSETS).then(cache => {
+        caches.open(PRECACHE).then(cache => {
             return cache.match(evt.request).then(response => {
                 return response || fetch(evt.request);
             });
         })
     );
 });
+
+
+// after checking if an api request is being made, check if its a post. If it IS
+// we are going to have to set up a way to send data to indexedDB
+// and then we will also need like, some sort of refresh funciton to sync 
+// May be a good time to look into the backgorund sync packages
