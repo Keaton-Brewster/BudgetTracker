@@ -1,53 +1,81 @@
-const FILES_TO_CACHE = [];
+const DATA_CACHE_NAME = "data-cache-v1";
 
-const PRECACHE = 'precache-v1';
-const RUNTIME = 'runtime';
-
-self.addEventListener('install', (event) => {
+self.addEventListener("install", (event) => {
+    //   pre-cache transaction data
     event.waitUntil(
-        caches
-        .open(PRECACHE)
-        .then((cache) => cache.addAll(FILES_TO_CACHE))
-        .then(self.skipWaiting())
+        caches.open(DATA_CACHE_NAME).then((cache) => cache.add("/api/transaction"))
     );
+
+    //   pre-cache static assets
+    event.waitUntil(
+        caches.open("static").then((cache) => {
+            return cache.addAll([
+                    "/",
+                    "/index.html",
+                    "/styles.css",
+                    "/index.js",
+                    "/db.js",
+                    "/manifest.webmanifest",
+                    "./icons/icon-192x192.png",
+                    "./icons/icon-512x512.png",
+                    "https://cdn.jsdelivr.net/npm/chart.js@2.8.0f",
+                ])
+                .catch(error => console.log(error));
+        })
+    );
+    console.log("Install");
+    self.skipWaiting();
 });
 
-// The activate handler takes care of cleaning up old caches.
-self.addEventListener('activate', (event) => {
-    const currentCaches = [PRECACHE, RUNTIME];
+// activate
+self.addEventListener("activate", function (event) {
     event.waitUntil(
-        caches
-        .keys()
-        .then((cacheNames) => {
-            return cacheNames.filter((cacheName) => !currentCaches.includes(cacheName));
-        })
-        .then((cachesToDelete) => {
+        caches.keys().then((keyList) => {
             return Promise.all(
-                cachesToDelete.map((cacheToDelete) => {
-                    return caches.delete(cacheToDelete);
+                keyList.map((key) => {
+                    if (key !== "static" && key !== DATA_CACHE_NAME) {
+                        console.log("Removing old cache data", key);
+                        return caches.delete(key);
+                    }
                 })
             );
         })
-        .then(() => self.clients.claim())
     );
+
+    self.clients.claim();
 });
 
-self.addEventListener('fetch', (event) => {
-    if (event.request.url.startsWith(self.location.origin)) {
+self.addEventListener("fetch", function (event) {
+    if (event.request.url.includes("/api/")) {
         event.respondWith(
-            caches.match(event.request).then((cachedResponse) => {
-                if (cachedResponse) {
-                    return cachedResponse;
-                }
+            caches
+            .open(DATA_CACHE_NAME)
+            .then((cache) => {
+                return fetch(event.request)
+                    .then((response) => {
+                        // If the response was good, clone it and store it in the cache.
+                        if (response.status === 200) {
+                            cache.put(event.request.url, response.clone());
+                        }
 
-                return caches.open(RUNTIME).then((cache) => {
-                    return fetch(event.request).then((response) => {
-                        return cache.put(event.request, response.clone()).then(() => {
-                            return response;
-                        });
+                        return response;
+                    })
+                    .catch((err) => {
+                        // Network request failed, try to get it from the cache.
+                        return cache.match(event.request);
                     });
-                });
             })
+            .catch((err) => console.log(err))
         );
+
+        return;
     }
+
+    event.respondWith(
+        caches.open("static").then((cache) => {
+            return cache.match(event.request).then((response) => {
+                return response || fetch(event.request);
+            });
+        })
+    );
 });
