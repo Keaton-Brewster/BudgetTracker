@@ -44,6 +44,14 @@ self.addEventListener("activate", function (evt) {
 // fetch
 self.addEventListener("fetch", function (evt) {
     if (evt.request.url.includes("/api/")) {
+
+        // after checking if an api request is being made, check if its a post. If it IS
+        // we are going to have to set up a way to send data to indexedDB
+        // and then we will also need like, some sort of refresh funciton to sync 
+        // May be a good time to look into the backgorund sync packages
+        if (evt.request.url.includes("/api/") && evt.request.method === "POST") {
+
+        }
         evt.respondWith(
             caches.open(API_DATA_CACHE).then(cache => {
                 return fetch(evt.request)
