@@ -33,6 +33,7 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
+    // not sure if this is what I want
     if (event.request.url.startsWith(self.location.origin)) {
         event.respondWith(
             caches.match(event.request).then((cachedResponse) => {
