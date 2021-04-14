@@ -2,12 +2,14 @@ let db;
 let budgetVersion;
 
 // Create a new db request for a "budget" database.
-const request = indexedDB.open('BudgetStore', budgetVersion || 21);
+const request = indexedDB.open('offline_data', budgetVersion || 21);
 
 request.onupgradeneeded = function (e) {
   console.log('Upgrade needed in IndexDB');
 
-  const { oldVersion } = e;
+  const {
+    oldVersion
+  } = e;
   const newVersion = e.newVersion || db.version;
 
   console.log(`DB Updated from version ${oldVersion} to ${newVersion}`);
@@ -15,7 +17,9 @@ request.onupgradeneeded = function (e) {
   db = e.target.result;
 
   if (db.objectStoreNames.length === 0) {
-    db.createObjectStore('BudgetStore', { autoIncrement: true });
+    db.createObjectStore('offline_data', {
+      autoIncrement: true
+    });
   }
 };
 
@@ -26,40 +30,43 @@ request.onerror = function (e) {
 function checkDatabase() {
   console.log('check db invoked');
 
-  // Open a transaction on your BudgetStore db
-  let transaction = db.transaction(['BudgetStore'], 'readwrite');
+  // Open a transaction on your offline_data db
+  let transaction = db.transaction(['offline_data'], 'readwrite');
 
-  // access your BudgetStore object
-  const store = transaction.objectStore('BudgetStore');
+  // access your offline_data object
+  const store = transaction.objectStore('offline_data');
 
   // Get all records from store and set to a variable
   const getAll = store.getAll();
 
   // If the request was successful
-  getAll.onsuccess = function () {
+  getAll.onsuccess = async () => {
     // If there are items in the store, we need to bulk add them when we are back online
     if (getAll.result.length > 0) {
       fetch('/api/transaction', {
-        method: 'POST',
-        body: JSON.stringify(getAll.result),
-        headers: {
-          Accept: 'application/json, text/plain, */*',
-          'Content-Type': 'application/json',
-        },
-      })
+          method: 'POST',
+          body: JSON.stringify(getAll.result),
+          headers: {
+            Accept: 'application/json, text/plain, */*',
+            'Content-Type': 'application/json',
+          },
+        })
         .then((response) => response.json())
         .then((res) => {
           // If our returned response is not empty
           if (res.length !== 0) {
-            // Open another transaction to BudgetStore with the ability to read and write
-            transaction = db.transaction(['BudgetStore'], 'readwrite');
+            transaction = db.transaction(['offline_data'], 'readwrite');
 
-            // Assign the current store to a variable
-            const currentStore = transaction.objectStore('BudgetStore');
+            const currentStore = transaction.objectStore('offline_data');
 
-            // Clear existing entries because our bulk add was successful
             currentStore.clear();
             console.log('Clearing store 🧹');
+
+            //* this is a thing I added to try to merge the local db and remote db
+            // currentStore.add(
+            //   fetch('/api/transaction')
+            // )
+            // console.log('updating indexedDB');
           }
         });
     }
@@ -71,19 +78,22 @@ request.onsuccess = function (e) {
   db = e.target.result;
 
   // Check if app is online before reading from db
-  if (navigator.onLine) {
+  // Removed the use of navigator.onLine becasue apparently it is not reliable
+  try {
     console.log('Backend online! 🗄️');
     checkDatabase();
+  } catch (error) {
+    console.error('Error checking database - db.js line 82');
   }
 };
 
 const saveRecord = (record) => {
   console.log('Save record invoked');
-  // Create a transaction on the BudgetStore db with readwrite access
-  const transaction = db.transaction(['BudgetStore'], 'readwrite');
+  // Create a transaction on the offline_data db with readwrite access
+  const transaction = db.transaction(['offline_data'], 'readwrite');
 
-  // Access your BudgetStore object store
-  const store = transaction.objectStore('BudgetStore');
+  // Access your offline_data object store
+  const store = transaction.objectStore('offline_data');
 
   // Add record to your store with add method.
   store.add(record);

@@ -1,0 +1,104 @@
+const DATA_CACHE_NAME = "data-cache-v1";
+const STATIC = 'static_cache_v1';
+
+(function () {
+    if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.register("service-worker.js", {
+                scope: "/"
+            })
+            .then(() => console.log("Service Worker registered successfully."))
+            .catch(error => console.log("Service Worker registration failed:", error));
+    }
+});
+
+self.addEventListener("install", (event) => {
+    event.waitUntil(
+        caches.open(DATA_CACHE_NAME)
+        .then(cache => {
+            return cache.add('/api/transaction')
+                .catch(e => {
+                    throw new Error(`Error SW line 19: ${e}`);
+                });
+        })
+    )
+
+    //   pre-cache static assets
+    event.waitUntil(
+        caches.open(STATIC).then(cache => {
+            return cache.addAll([
+                    './',
+                    "./index.html",
+                    "./styles.css",
+                    "./db.js",
+                    "./index.js",
+                    "./manifest.webmanifest",
+                    "./icons/icon-192x192.png",
+                    "./icons/icon-512x512.png",
+                    "https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css",
+                    "https://cdn.jsdelivr.net/npm/chart.js@2.8.0"
+                ])
+                .catch(error => {
+                    throw new Error(error);
+                });
+        })
+    );
+    console.log("SW installed");
+    self.skipWaiting();
+});
+
+// activate
+self.addEventListener("activate", function (event) {
+    event.waitUntil(
+        caches.keys().then((keyList) => {
+            return Promise.all(
+                keyList.map((key) => {
+                    if (key !== STATIC && key !== DATA_CACHE_NAME) {
+                        console.log("Removing old cache data", key);
+                        return caches.delete(key);
+                    }
+                })
+            );
+        })
+    );
+
+    self.clients.claim();
+});
+
+self.addEventListener("fetch", function (event) {
+    if (event.request.url.includes("/api/")) {
+        event.respondWith(() => {
+            caches
+
+                .open(DATA_CACHE_NAME)
+                .then(async cache => {
+                    return await fetch(event.request)
+                        .then((response) => {
+                            // If the response was good, clone it and store it in the cache.
+                            if (response.status === 200) {
+                                cache.put(event.request.url, response.clone());
+                            }
+
+                            return response;
+                        })
+                        .catch((err) => {
+                            console.log(err)
+                            // Network request failed, try to get it from the cache.
+                            return cache.match(event.request);
+                        });
+                })
+                .catch((err) => {
+                    throw new Error(err);
+                })
+        });
+
+        return;
+    }
+
+    event.respondWith(
+        caches.open(STATIC).then((cache) => {
+            return cache.match(event.request).then((response) => {
+                return response || fetch(event.request);
+            });
+        }).catch(error => console.error(error))
+    );
+});
