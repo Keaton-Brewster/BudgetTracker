@@ -23,6 +23,10 @@
     "express": "^4.17.1",
     "lite-server": "^2.5.3",
     "mongoose": "^5.5.15",
-    "morgan": "^1.9.1"
+    "morgan": "^1.9.1",
+    "workbox-cacheable-response": "^6.1.5",
+    "workbox-expiration": "^6.1.5",
+    "workbox-routing": "^6.1.5",
+    "workbox-strategies": "^6.1.5"
   }
 }

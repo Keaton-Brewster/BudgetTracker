@@ -1,8 +1,6 @@
 let db;
-let budgetVersion;
 
-// Create a new db request for a "budget" database.
-const request = indexedDB.open('offline_data', budgetVersion || 21);
+const request = indexedDB.open('offline_data', 5);
 
 request.onupgradeneeded = function (e) {
   console.log('Upgrade needed in IndexDB');
@@ -28,22 +26,15 @@ request.onerror = function (e) {
 };
 
 function checkDatabase() {
-  console.log('check db invoked');
-
-  // Open a transaction on your offline_data db
   let transaction = db.transaction(['offline_data'], 'readwrite');
-
-  // access your offline_data object
   const store = transaction.objectStore('offline_data');
-
-  // Get all records from store and set to a variable
   const getAll = store.getAll();
 
   // If the request was successful
   getAll.onsuccess = async () => {
     // If there are items in the store, we need to bulk add them when we are back online
     if (getAll.result.length > 0) {
-      fetch('/api/transaction', {
+      fetch('/api/transaction/bulk', {
           method: 'POST',
           body: JSON.stringify(getAll.result),
           headers: {
@@ -76,9 +67,6 @@ function checkDatabase() {
 request.onsuccess = function (e) {
   console.log('request success db.js line 70');
   db = e.target.result;
-
-  // Check if app is online before reading from db
-  // Removed the use of navigator.onLine becasue apparently it is not reliable
   try {
     console.log('Backend online! 🗄️');
     checkDatabase();
@@ -89,15 +77,9 @@ request.onsuccess = function (e) {
 
 const saveRecord = (record) => {
   console.log('Save record invoked');
-  // Create a transaction on the offline_data db with readwrite access
   const transaction = db.transaction(['offline_data'], 'readwrite');
-
-  // Access your offline_data object store
   const store = transaction.objectStore('offline_data');
-
-  // Add record to your store with add method.
   store.add(record);
 };
 
-// Listen for app coming back online
 window.addEventListener('online', checkDatabase);
