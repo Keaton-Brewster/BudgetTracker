@@ -1,8 +1,20 @@
 let db;
-
+let cachedData;
 const request = indexedDB.open('offline_data', 5);
 
-const cachedData = await fetch('/api/transaction');
+//? This whole thing is me trying to figure out how to access the mongo data, wether online or cached
+(async function syncDB() {
+  console.log('syncing databases right now')
+  await fetch('/api/transaction')
+    .then(res => {
+      return res.json()
+    })
+    .then(data => cachedData = data);
+  console.log(`cached data indexedDB line 10`)
+  console.log(cachedData);
+  const transaction = db.transaction(['offline_data'], 'readwrite');
+  const store = transaction.objectStore('offline_data');
+})();
 
 request.onupgradeneeded = function (e) {
   console.log('Upgrade needed in IndexDB');
@@ -54,12 +66,6 @@ function checkDatabase() {
 
             currentStore.clear();
             console.log('Clearing store 🧹');
-
-            //* this is a thing I added to try to merge the local db and remote db
-            // currentStore.add(
-            //   fetch('/api/transaction')
-            // )
-            // console.log('updating indexedDB');
           }
         });
     }
