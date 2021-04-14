@@ -5,7 +5,7 @@ const STATIC_CACHE = 'static_cache_v1';
     if ("serviceWorker" in navigator) {
         navigator.serviceWorker.register("service-worker.js")
             .then(() => console.log("Service Worker registered successfully."))
-            .catch(error => console.log("Service Worker registration failed:", error));
+            .catch(error => console.error("Service Worker registration failed:", error));
     }
 })();
 
@@ -39,7 +39,6 @@ self.addEventListener("install", (event) => {
                 });
         })
     );
-    console.log("SW installed");
     self.skipWaiting();
 });
 
@@ -49,7 +48,6 @@ self.addEventListener("activate", function (event) {
             return Promise.all(
                 keyList.map((key) => {
                     if (key !== STATIC_CACHE && key !== DATA_CACHE) {
-                        console.log("Removing old cache data", key);
                         return caches.delete(key);
                     }
                 })
@@ -68,7 +66,6 @@ self.addEventListener("fetch", function (event) {
                 return await fetch(event.request)
                     .then((response) => {
                         if (response.status === 200) {
-                            console.log(`Response successful SW line 87`)
                             cache.put(event.request.url, response.clone());
                         };
                         return response;
