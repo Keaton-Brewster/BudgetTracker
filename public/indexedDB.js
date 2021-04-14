@@ -2,6 +2,8 @@ let db;
 
 const request = indexedDB.open('offline_data', 5);
 
+const cachedData = await fetch('/api/transaction');
+
 request.onupgradeneeded = function (e) {
   console.log('Upgrade needed in IndexDB');
 
