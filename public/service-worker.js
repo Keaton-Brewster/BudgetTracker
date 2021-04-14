@@ -58,7 +58,8 @@ self.addEventListener("activate", function (event) {
 });
 
 self.addEventListener("fetch", function (event) {
-    if (event.request.url.includes("/api/")) {
+
+    if (event.request.url.includes("/api/") && event.request.method === "GET") {
         event.respondWith(
             caches.open(DATA_CACHE)
             .then(async cache => {
@@ -79,6 +80,68 @@ self.addEventListener("fetch", function (event) {
         );
         return;
     }
+
+    //! this was my attempt at trying to sync indexedDB with cache. Didn't work
+    // if (event.request.url.includes("/api/") && event.request.method === "POST") {
+    //     event.respondWith(
+    //         caches.open(DATA_CACHE)
+    //         .then(async cache => {
+    //             return await fetch(event.request)
+    //                 .then((response) => {
+    //                     if (response.status === 200) {
+    //                         return response;
+    //                     };
+    //                 })
+    //                 .catch(() => {
+    //                     let db;
+    //                     const request = indexedDB.open('offline_data', 5);
+    //                     request.onsuccess = function (e) {
+    //                         db = e.target.result;
+    //                     };
+    //                     const transaction = db.transaction(['offline_data'], 'readwrite');
+    //                     const store = transaction.objectStore('offline_data');
+    //                     caches.open(DATA_CACHE).then(cache => cache.put(event.request.url, event.request.json()));
+    //                     return store.add(event.request.json());
+    //                 });
+    //         })
+    //         .catch((e) => {
+    //             throw new Error(e);
+    //         })
+    //     );
+
+        //     fetch(event.request)
+        //         .then(response => {
+        //             if (response.status === 200) {
+        //                 return response;
+        //             }
+
+        //         })
+        // );
+        return;
+    }
+
+    //? This is the original function, I am going to attempt to write a new one above it
+    // if (event.request.url.includes("/api/")) {
+    //     event.respondWith(
+    //         caches.open(DATA_CACHE)
+    //         .then(async cache => {
+    //             return await fetch(event.request)
+    //                 .then((response) => {
+    //                     if (response.status === 200) {
+    //                         cache.put(event.request.url, response.clone());
+    //                     };
+    //                     return response;
+    //                 })
+    //                 .catch(() => {
+    //                     return cache.match(event.request);
+    //                 });
+    //         })
+    //         .catch((e) => {
+    //             throw new Error(e);
+    //         })
+    //     );
+    //     return;
+    // }
 
     event.respondWith(
         caches.open(STATIC_CACHE).then(cache => {
