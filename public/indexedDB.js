@@ -36,7 +36,7 @@ function checkDatabase() {
   const getAll = store.getAll();
 
   // If the request was successful
-  getAll.onsuccess = async () => {
+  getAll.onsuccess = () => {
     // If there are items in the store, we need to bulk add them when we are back online
     if (getAll.result.length > 0) {
       fetch('/api/transaction/bulk', {
@@ -56,7 +56,6 @@ function checkDatabase() {
             const currentStore = transaction.objectStore('offline_data');
 
             currentStore.clear();
-            console.log('Clearing store 🧹');
           }
         });
     }
@@ -64,18 +63,15 @@ function checkDatabase() {
 }
 
 request.onsuccess = function (e) {
-  console.log('request success db.js line 70');
   db = e.target.result;
   try {
-    console.log('Backend online! 🗄️');
     checkDatabase();
-  } catch (error) {
-    console.error('Error checking database - db.js line 82');
+  } catch (e) {
+    throw new Error(`Cannot check database while offline:: ${e}`)
   }
 };
 
 const saveRecord = (record) => {
-  console.log('Save record invoked');
   const transaction = db.transaction(['offline_data'], 'readwrite');
   const store = transaction.objectStore('offline_data');
   store.add(record);
