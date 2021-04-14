@@ -12,6 +12,9 @@ fetch("/api/transaction")
     populateTotal();
     populateTable();
     populateChart();
+  })
+  .catch(e => {
+    throw new Error(`Something went wrong index.js line 17 ==>> ${e}`)
   });
 
 function populateTotal() {
