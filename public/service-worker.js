@@ -31,7 +31,6 @@ self.addEventListener("install", (event) => {
                     "/manifest.webmanifest",
                     "/icons/icon-192x192.png",
                     "/icons/icon-512x512.png",
-                    "https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css",
                     "https://cdn.jsdelivr.net/npm/chart.js@2.8.0"
                 ])
                 .catch(e => {
@@ -70,8 +69,7 @@ self.addEventListener("fetch", function (event) {
                         };
                         return response;
                     })
-                    .catch((e) => {
-                        console.error(`Sent to catch SW 93 ==> ${e}`)
+                    .catch(() => {
                         return cache.match(event.request);
                     });
             })
@@ -87,6 +85,8 @@ self.addEventListener("fetch", function (event) {
             return cache.match(event.request).then(async response => {
                 return response || await fetch(event.request);
             });
-        }).catch(error => console.error(error))
+        }).catch(e => {
+            throw new Error(e);
+        })
     );
 });
