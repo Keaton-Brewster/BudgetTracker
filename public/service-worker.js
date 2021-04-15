@@ -117,8 +117,8 @@ self.addEventListener("fetch", function (event) {
 
         //         })
         // );
-        return;
-    }
+    //     return;
+    // }
 
     //? This is the original function, I am going to attempt to write a new one above it
     // if (event.request.url.includes("/api/")) {
