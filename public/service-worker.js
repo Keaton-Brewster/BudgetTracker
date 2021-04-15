@@ -58,8 +58,7 @@ self.addEventListener("activate", function (event) {
 });
 
 self.addEventListener("fetch", function (event) {
-
-    if (event.request.url.includes("/api/") && event.request.method === "GET") {
+    if (event.request.url.includes("/api/")) {
         event.respondWith(
             caches.open(DATA_CACHE)
             .then(async cache => {
@@ -143,6 +142,7 @@ self.addEventListener("fetch", function (event) {
     //     return;
     // }
 
+    // This handles all requests that are for static content, which all should have been precached when the service worker was installed
     event.respondWith(
         caches.open(STATIC_CACHE).then(cache => {
             return cache.match(event.request).then(async response => {
