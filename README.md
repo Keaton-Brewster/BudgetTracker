@@ -17,7 +17,7 @@ This application is covered under the MIT license.
 
   ---
 
-## Link to [deployed app](https://fitnesstracker-nosql-kpb.herokuapp.com/)
+## Link to [deployed app](https://offline-budget-tracker-kpb.herokuapp.com/)
 
  ## Images
  
